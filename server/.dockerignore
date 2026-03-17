@@ -1,0 +1,8 @@
+node_modules
+.env
+uploads/champions/*
+uploads/items/*
+data/*
+!uploads/champions/.gitkeep
+!uploads/items/.gitkeep
+!data/.gitkeep

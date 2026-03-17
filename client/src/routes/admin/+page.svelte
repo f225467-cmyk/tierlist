@@ -1,14 +1,43 @@
 <script>
 	import { onMount } from 'svelte';
-	import { language, translations } from '$lib/stores.js';
-
-	const API_URL = 'http://localhost:3002/api';
+	import { language, translations, API_URL, API_BASE_URL, authToken, login, logout, authFetch } from '$lib/stores.js';
 
 	let currentLang = 'EN';
 	language.subscribe(value => {
 		currentLang = value;
 	});
 	$: t = translations[currentLang];
+
+	// Auth state
+	let isLoggedIn = false;
+	let loginPassword = '';
+	let loginError = '';
+	let loginLoading = false;
+
+	authToken.subscribe(value => {
+		isLoggedIn = !!value;
+	});
+
+	async function handleLogin() {
+		loginError = '';
+		loginLoading = true;
+		try {
+			await login(loginPassword);
+			loginPassword = '';
+			await loadData();
+			await initializeData();
+		} catch (err) {
+			loginError = err.message || 'Giriş başarısız';
+		} finally {
+			loginLoading = false;
+		}
+	}
+
+	function handleLogout() {
+		logout();
+		champions = [];
+		items = [];
+	}
 
 	let activeTab = 'champions';
 	let champions = [];
@@ -69,13 +98,14 @@
 		if (champions.length === 0) {
 			try {
 				const { champions: staticChampions } = await import('$lib/champions.js');
-				await fetch(`${API_URL}/init/champions`, {
+				await authFetch(`${API_URL}/init/champions`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({ champions: staticChampions })
 				});
 				await fetchChampions();
 			} catch (err) {
+				if (err.message === 'AUTH_EXPIRED') return;
 				console.error('Failed to initialize champions:', err);
 			}
 		}
@@ -83,21 +113,24 @@
 		if (items.length === 0) {
 			try {
 				const { items: staticItems } = await import('$lib/items.js');
-				await fetch(`${API_URL}/init/items`, {
+				await authFetch(`${API_URL}/init/items`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({ items: staticItems })
 				});
 				await fetchItems();
 			} catch (err) {
+				if (err.message === 'AUTH_EXPIRED') return;
 				console.error('Failed to initialize items:', err);
 			}
 		}
 	}
 
 	onMount(async () => {
-		await loadData();
-		await initializeData();
+		if (isLoggedIn) {
+			await loadData();
+			await initializeData();
+		}
 	});
 
 	// Modal functions
@@ -153,12 +186,12 @@
 	function getImageUrl(image) {
 		if (!image) return null;
 		if (image.startsWith('/uploads/')) {
-			return `http://localhost:3002${image}`;
+			return `${API_BASE_URL}${image}`;
 		}
 		return image;
 	}
 
-	// CRUD operations
+	// CRUD operations (all use authFetch)
 	async function saveItem() {
 		if (!formName.trim()) {
 			alert('İsim gerekli!');
@@ -168,36 +201,32 @@
 		try {
 			if (activeTab === 'champions') {
 				if (modalMode === 'add') {
-					// Create champion
-					const res = await fetch(`${API_URL}/champions`, {
+					const res = await authFetch(`${API_URL}/champions`, {
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json' },
 						body: JSON.stringify({ name: formName, roles: formRoles })
 					});
 					const newChampion = await res.json();
 
-					// Upload image if selected
 					if (formImage) {
 						const formData = new FormData();
 						formData.append('image', formImage);
-						await fetch(`${API_URL}/champions/${newChampion.id}/image`, {
+						await authFetch(`${API_URL}/champions/${newChampion.id}/image`, {
 							method: 'POST',
 							body: formData
 						});
 					}
 				} else {
-					// Update champion
-					await fetch(`${API_URL}/champions/${editingItem.id}`, {
+					await authFetch(`${API_URL}/champions/${editingItem.id}`, {
 						method: 'PUT',
 						headers: { 'Content-Type': 'application/json' },
 						body: JSON.stringify({ name: formName, roles: formRoles })
 					});
 
-					// Upload new image if selected
 					if (formImage) {
 						const formData = new FormData();
 						formData.append('image', formImage);
-						await fetch(`${API_URL}/champions/${editingItem.id}/image`, {
+						await authFetch(`${API_URL}/champions/${editingItem.id}/image`, {
 							method: 'POST',
 							body: formData
 						});
@@ -206,36 +235,32 @@
 				await fetchChampions();
 			} else {
 				if (modalMode === 'add') {
-					// Create item
-					const res = await fetch(`${API_URL}/items`, {
+					const res = await authFetch(`${API_URL}/items`, {
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json' },
 						body: JSON.stringify({ name: formName })
 					});
 					const newItem = await res.json();
 
-					// Upload image if selected
 					if (formImage) {
 						const formData = new FormData();
 						formData.append('image', formImage);
-						await fetch(`${API_URL}/items/${newItem.id}/image`, {
+						await authFetch(`${API_URL}/items/${newItem.id}/image`, {
 							method: 'POST',
 							body: formData
 						});
 					}
 				} else {
-					// Update item
-					await fetch(`${API_URL}/items/${editingItem.id}`, {
+					await authFetch(`${API_URL}/items/${editingItem.id}`, {
 						method: 'PUT',
 						headers: { 'Content-Type': 'application/json' },
 						body: JSON.stringify({ name: formName })
 					});
 
-					// Upload new image if selected
 					if (formImage) {
 						const formData = new FormData();
 						formData.append('image', formImage);
-						await fetch(`${API_URL}/items/${editingItem.id}/image`, {
+						await authFetch(`${API_URL}/items/${editingItem.id}/image`, {
 							method: 'POST',
 							body: formData
 						});
@@ -246,6 +271,7 @@
 
 			closeModal();
 		} catch (err) {
+			if (err.message === 'AUTH_EXPIRED') return;
 			console.error('Save error:', err);
 			alert('Kaydetme hatası!');
 		}
@@ -260,13 +286,14 @@
 
 		try {
 			if (activeTab === 'champions') {
-				await fetch(`${API_URL}/champions/${item.id}`, { method: 'DELETE' });
+				await authFetch(`${API_URL}/champions/${item.id}`, { method: 'DELETE' });
 				await fetchChampions();
 			} else {
-				await fetch(`${API_URL}/items/${item.id}`, { method: 'DELETE' });
+				await authFetch(`${API_URL}/items/${item.id}`, { method: 'DELETE' });
 				await fetchItems();
 			}
 		} catch (err) {
+			if (err.message === 'AUTH_EXPIRED') return;
 			console.error('Delete error:', err);
 			alert('Silme hatası!');
 		}
@@ -313,7 +340,7 @@
 
 			await Promise.all(
 				Array.from(selectedIds).map(id =>
-					fetch(`${API_URL}/${endpoint}/${id}`, { method: 'DELETE' })
+					authFetch(`${API_URL}/${endpoint}/${id}`, { method: 'DELETE' })
 				)
 			);
 
@@ -326,185 +353,300 @@
 			selectedIds = new Set();
 			bulkSelectMode = false;
 		} catch (err) {
+			if (err.message === 'AUTH_EXPIRED') return;
 			console.error('Bulk delete error:', err);
 			alert('Toplu silme hatası!');
 		}
 	}
 </script>
 
-<div class="admin-page">
-	<div class="page-header">
-		<h1 class="page-title">Admin Panel</h1>
-		<div class="tab-buttons">
-			<button
-				class="tab-btn"
-				class:active={activeTab === 'champions'}
-				on:click={() => activeTab = 'champions'}
-			>
-				Şampiyonlar ({champions.length})
-			</button>
-			<button
-				class="tab-btn"
-				class:active={activeTab === 'items'}
-				on:click={() => activeTab = 'items'}
-			>
-				Items ({items.length})
-			</button>
-		</div>
-		<div class="header-actions">
-			<button
-				class="bulk-select-btn"
-				class:active={bulkSelectMode}
-				on:click={toggleBulkSelectMode}
-			>
-				{bulkSelectMode ? 'İptal' : 'Toplu Seçim'}
-			</button>
-			{#if selectedIds.size > 0}
-				<button class="delete-selected-btn" on:click={deleteSelected}>
-					Seçilenleri Sil ({selectedIds.size})
-				</button>
-			{/if}
-			{#if !bulkSelectMode}
-				<button class="add-btn" on:click={openAddModal}>
-					+ Yeni Ekle
-				</button>
-			{/if}
-		</div>
-	</div>
-
-	<div class="content">
-		{#if loading}
-			<div class="loading">Yükleniyor...</div>
-		{:else if currentItems.length === 0}
-			<div class="empty">
-				{activeTab === 'champions' ? 'Henüz şampiyon yok.' : 'Henüz item yok.'}
-			</div>
-		{:else}
-			<div class="table-container">
-				<table class="data-table" class:bulk-mode={bulkSelectMode}>
-					<thead>
-						<tr>
-							<th class="col-image">Resim</th>
-							<th class="col-name">İsim</th>
-							{#if activeTab === 'champions'}
-								<th class="col-roles">Roller</th>
-							{/if}
-							{#if !bulkSelectMode}
-								<th class="col-actions">İşlemler</th>
-							{/if}
-						</tr>
-					</thead>
-					<tbody>
-						{#each currentItems as item (item.id)}
-							<tr
-								class:selected={selectedIds.has(item.id)}
-								class:selectable={bulkSelectMode}
-								on:click={() => handleRowClick(item)}
-							>
-								<td class="col-image">
-									<img
-										src={getImageUrl(item.image)}
-										alt={item.name}
-										class="item-image"
-										on:error={(e) => e.target.src = '/champions/default.png'}
-									/>
-								</td>
-								<td class="col-name">{item.name}</td>
-								{#if activeTab === 'champions'}
-									<td class="col-roles">
-										<div class="role-tags">
-											{#each (item.roles || []) as role}
-												<span class="role-tag">{role}</span>
-											{/each}
-										</div>
-									</td>
-								{/if}
-								{#if !bulkSelectMode}
-									<td class="col-actions">
-										<button class="btn-edit" on:click={() => openEditModal(item)}>
-											Düzenle
-										</button>
-										<button class="btn-delete" on:click={() => deleteItem(item)}>
-											Sil
-										</button>
-									</td>
-								{/if}
-							</tr>
-						{/each}
-					</tbody>
-				</table>
-			</div>
-		{/if}
-	</div>
-</div>
-
-<!-- Modal -->
-{#if showModal}
-	<div class="modal-overlay" on:click={closeModal}>
-		<div class="modal" on:click|stopPropagation>
-			<div class="modal-header">
-				<h2>{modalMode === 'add' ? 'Yeni Ekle' : 'Düzenle'}</h2>
-				<button class="modal-close" on:click={closeModal}>&times;</button>
-			</div>
-			<div class="modal-body">
-				<div class="form-group">
-					<label for="name">İsim</label>
+{#if !isLoggedIn}
+	<!-- Login Gate -->
+	<div class="login-page">
+		<div class="login-card">
+			<h1 class="login-title">Admin Panel</h1>
+			<p class="login-subtitle">Devam etmek için giriş yapın</p>
+			<form on:submit|preventDefault={handleLogin}>
+				<div class="login-form-group">
 					<input
-						type="text"
-						id="name"
-						bind:value={formName}
-						placeholder="İsim girin..."
+						type="password"
+						bind:value={loginPassword}
+						placeholder="Şifre"
+						class="login-input"
+						disabled={loginLoading}
+						autofocus
 					/>
 				</div>
-
-				{#if activeTab === 'champions'}
-					<div class="form-group">
-						<label>Roller</label>
-						<div class="role-checkboxes">
-							{#each roles as role}
-								<label class="role-checkbox">
-									<input
-										type="checkbox"
-										checked={formRoles.includes(role.id)}
-										on:change={() => toggleRole(role.id)}
-									/>
-									<span>{role.name}</span>
-								</label>
-							{/each}
-						</div>
-					</div>
+				{#if loginError}
+					<div class="login-error">{loginError}</div>
 				{/if}
-
-				<div class="form-group">
-					<label>Resim</label>
-					<div class="image-upload">
-						{#if formImagePreview}
-							<img src={formImagePreview} alt="Preview" class="image-preview" />
-						{:else}
-							<div class="image-placeholder">Resim Yok</div>
-						{/if}
-						<input
-							type="file"
-							accept="image/*"
-							on:change={handleImageSelect}
-							id="image-input"
-							class="file-input"
-						/>
-						<label for="image-input" class="file-label">
-							Resim Seç
-						</label>
-					</div>
-				</div>
-			</div>
-			<div class="modal-footer">
-				<button class="btn-cancel" on:click={closeModal}>İptal</button>
-				<button class="btn-save" on:click={saveItem}>Kaydet</button>
-			</div>
+				<button type="submit" class="login-btn" disabled={loginLoading || !loginPassword}>
+					{loginLoading ? 'Giriş yapılıyor...' : 'Giriş Yap'}
+				</button>
+			</form>
 		</div>
 	</div>
+{:else}
+	<!-- Admin Panel -->
+	<div class="admin-page">
+		<div class="page-header">
+			<h1 class="page-title">Admin Panel</h1>
+			<div class="tab-buttons">
+				<button
+					class="tab-btn"
+					class:active={activeTab === 'champions'}
+					on:click={() => activeTab = 'champions'}
+				>
+					Şampiyonlar ({champions.length})
+				</button>
+				<button
+					class="tab-btn"
+					class:active={activeTab === 'items'}
+					on:click={() => activeTab = 'items'}
+				>
+					Items ({items.length})
+				</button>
+			</div>
+			<div class="header-actions">
+				<button
+					class="bulk-select-btn"
+					class:active={bulkSelectMode}
+					on:click={toggleBulkSelectMode}
+				>
+					{bulkSelectMode ? 'İptal' : 'Toplu Seçim'}
+				</button>
+				{#if selectedIds.size > 0}
+					<button class="delete-selected-btn" on:click={deleteSelected}>
+						Seçilenleri Sil ({selectedIds.size})
+					</button>
+				{/if}
+				{#if !bulkSelectMode}
+					<button class="add-btn" on:click={openAddModal}>
+						+ Yeni Ekle
+					</button>
+				{/if}
+				<button class="logout-btn" on:click={handleLogout}>
+					Çıkış Yap
+				</button>
+			</div>
+		</div>
+
+		<div class="content">
+			{#if loading}
+				<div class="loading">Yükleniyor...</div>
+			{:else if currentItems.length === 0}
+				<div class="empty">
+					{activeTab === 'champions' ? 'Henüz şampiyon yok.' : 'Henüz item yok.'}
+				</div>
+			{:else}
+				<div class="table-container">
+					<table class="data-table" class:bulk-mode={bulkSelectMode}>
+						<thead>
+							<tr>
+								<th class="col-image">Resim</th>
+								<th class="col-name">İsim</th>
+								{#if activeTab === 'champions'}
+									<th class="col-roles">Roller</th>
+								{/if}
+								{#if !bulkSelectMode}
+									<th class="col-actions">İşlemler</th>
+								{/if}
+							</tr>
+						</thead>
+						<tbody>
+							{#each currentItems as item (item.id)}
+								<tr
+									class:selected={selectedIds.has(item.id)}
+									class:selectable={bulkSelectMode}
+									on:click={() => handleRowClick(item)}
+								>
+									<td class="col-image">
+										<img
+											src={getImageUrl(item.image)}
+											alt={item.name}
+											class="item-image"
+											on:error={(e) => e.target.src = '/champions/default.png'}
+										/>
+									</td>
+									<td class="col-name">{item.name}</td>
+									{#if activeTab === 'champions'}
+										<td class="col-roles">
+											<div class="role-tags">
+												{#each (item.roles || []) as role}
+													<span class="role-tag">{role}</span>
+												{/each}
+											</div>
+										</td>
+									{/if}
+									{#if !bulkSelectMode}
+										<td class="col-actions">
+											<button class="btn-edit" on:click={() => openEditModal(item)}>
+												Düzenle
+											</button>
+											<button class="btn-delete" on:click={() => deleteItem(item)}>
+												Sil
+											</button>
+										</td>
+									{/if}
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+			{/if}
+		</div>
+	</div>
+
+	<!-- Modal -->
+	{#if showModal}
+		<div class="modal-overlay" on:click={closeModal}>
+			<div class="modal" on:click|stopPropagation>
+				<div class="modal-header">
+					<h2>{modalMode === 'add' ? 'Yeni Ekle' : 'Düzenle'}</h2>
+					<button class="modal-close" on:click={closeModal}>&times;</button>
+				</div>
+				<div class="modal-body">
+					<div class="form-group">
+						<label for="name">İsim</label>
+						<input
+							type="text"
+							id="name"
+							bind:value={formName}
+							placeholder="İsim girin..."
+						/>
+					</div>
+
+					{#if activeTab === 'champions'}
+						<div class="form-group">
+							<label>Roller</label>
+							<div class="role-checkboxes">
+								{#each roles as role}
+									<label class="role-checkbox">
+										<input
+											type="checkbox"
+											checked={formRoles.includes(role.id)}
+											on:change={() => toggleRole(role.id)}
+										/>
+										<span>{role.name}</span>
+									</label>
+								{/each}
+							</div>
+						</div>
+					{/if}
+
+					<div class="form-group">
+						<label>Resim</label>
+						<div class="image-upload">
+							{#if formImagePreview}
+								<img src={formImagePreview} alt="Preview" class="image-preview" />
+							{:else}
+								<div class="image-placeholder">Resim Yok</div>
+							{/if}
+							<input
+								type="file"
+								accept="image/*"
+								on:change={handleImageSelect}
+								id="image-input"
+								class="file-input"
+							/>
+							<label for="image-input" class="file-label">
+								Resim Seç
+							</label>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button class="btn-cancel" on:click={closeModal}>İptal</button>
+					<button class="btn-save" on:click={saveItem}>Kaydet</button>
+				</div>
+			</div>
+		</div>
+	{/if}
 {/if}
 
 <style>
+	/* Login Page Styles */
+	.login-page {
+		height: 100vh;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background-color: #0a0a0a;
+	}
+
+	.login-card {
+		background-color: #0d0d0d;
+		border: 1px solid #1a1a1a;
+		border-radius: 12px;
+		padding: 40px;
+		width: 380px;
+		max-width: 90%;
+		text-align: center;
+	}
+
+	.login-title {
+		color: #fff;
+		font-size: 28px;
+		font-weight: 700;
+		margin: 0 0 8px 0;
+	}
+
+	.login-subtitle {
+		color: #666;
+		font-size: 14px;
+		margin: 0 0 32px 0;
+	}
+
+	.login-form-group {
+		margin-bottom: 16px;
+	}
+
+	.login-input {
+		width: 100%;
+		padding: 14px 16px;
+		background-color: #1a1a1a;
+		border: 1px solid #2a2a2a;
+		border-radius: 8px;
+		color: #fff;
+		font-size: 15px;
+		box-sizing: border-box;
+	}
+
+	.login-input:focus {
+		outline: none;
+		border-color: #FF1744;
+	}
+
+	.login-error {
+		color: #FF1744;
+		font-size: 13px;
+		margin-bottom: 16px;
+		text-align: left;
+	}
+
+	.login-btn {
+		width: 100%;
+		padding: 14px;
+		background-color: #FF1744;
+		border: none;
+		border-radius: 8px;
+		color: #fff;
+		font-size: 15px;
+		font-weight: 600;
+		cursor: pointer;
+		transition: all 0.2s;
+	}
+
+	.login-btn:hover:not(:disabled) {
+		background-color: #ff3d5a;
+	}
+
+	.login-btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	/* Admin Page Styles */
 	.admin-page {
 		height: 100vh;
 		display: flex;
@@ -580,6 +722,24 @@
 		align-items: center;
 		gap: 12px;
 		margin-left: auto;
+	}
+
+	.logout-btn {
+		background-color: transparent;
+		border: 1px solid #3a3a3a;
+		color: #aaa;
+		padding: 10px 20px;
+		font-size: 14px;
+		font-weight: 500;
+		border-radius: 6px;
+		cursor: pointer;
+		transition: all 0.2s;
+	}
+
+	.logout-btn:hover {
+		background-color: #1a1a1a;
+		color: #fff;
+		border-color: #555;
 	}
 
 	.delete-selected-btn {

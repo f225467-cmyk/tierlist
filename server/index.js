@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import multer from 'multer';
@@ -5,14 +6,23 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import rateLimit from 'express-rate-limit';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = 3002;
+const PORT = process.env.PORT || 3002;
+const JWT_SECRET = process.env.JWT_SECRET || 'change-this-secret';
+const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || '';
 
-app.use(cors());
+// CORS configuration
+const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173';
+app.use(cors({
+	origin: corsOrigin.split(',').map(s => s.trim()),
+	credentials: true
+}));
 app.use(express.json());
 
 // Rate limiting - genel API için
@@ -33,8 +43,58 @@ const strictLimiter = rateLimit({
 	legacyHeaders: false
 });
 
+// Login endpoint için ayrı rate limit (5 deneme/dakika)
+const loginLimiter = rateLimit({
+	windowMs: 1 * 60 * 1000,
+	max: 5,
+	message: { error: 'Çok fazla giriş denemesi. Lütfen 1 dakika bekleyin.' },
+	standardHeaders: true,
+	legacyHeaders: false
+});
+
 // Tüm API route'larına rate limiting uygula
 app.use('/api', apiLimiter);
+
+// ============ AUTH ============
+
+// JWT authentication middleware
+const authenticateToken = (req, res, next) => {
+	const authHeader = req.headers['authorization'];
+	const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+
+	if (!token) {
+		return res.status(401).json({ error: 'Authentication required' });
+	}
+
+	try {
+		const decoded = jwt.verify(token, JWT_SECRET);
+		req.user = decoded;
+		next();
+	} catch (err) {
+		return res.status(401).json({ error: 'Invalid or expired token' });
+	}
+};
+
+// Login endpoint
+app.post('/api/auth/login', loginLimiter, (req, res) => {
+	const { password } = req.body;
+
+	if (!password) {
+		return res.status(400).json({ error: 'Password is required' });
+	}
+
+	if (!ADMIN_PASSWORD_HASH) {
+		return res.status(500).json({ error: 'Server auth not configured' });
+	}
+
+	const isValid = bcrypt.compareSync(password, ADMIN_PASSWORD_HASH);
+	if (!isValid) {
+		return res.status(401).json({ error: 'Yanlış şifre' });
+	}
+
+	const token = jwt.sign({ role: 'admin' }, JWT_SECRET, { expiresIn: '24h' });
+	res.json({ token });
+});
 
 // Input sanitization - XSS koruması
 const sanitizeInput = (str) => {
@@ -147,7 +207,7 @@ const getNextId = (items) => {
 	return Math.max(...items.map(item => item.id)) + 1;
 };
 
-// Multer configuration for champions
+// Multer configuration for champions (5MB limit)
 const championStorage = multer.diskStorage({
 	destination: (req, file, cb) => {
 		cb(null, path.join(__dirname, 'uploads', 'champions'));
@@ -158,7 +218,7 @@ const championStorage = multer.diskStorage({
 	}
 });
 
-// Multer configuration for items
+// Multer configuration for items (5MB limit)
 const itemStorage = multer.diskStorage({
 	destination: (req, file, cb) => {
 		cb(null, path.join(__dirname, 'uploads', 'items'));
@@ -169,43 +229,38 @@ const itemStorage = multer.diskStorage({
 	}
 });
 
+const fileFilter = (req, file, cb) => {
+	const allowedTypes = /jpeg|jpg|png|gif|webp/;
+	const ext = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+	const mime = allowedTypes.test(file.mimetype);
+	if (ext && mime) {
+		cb(null, true);
+	} else {
+		cb(new Error('Only image files are allowed'));
+	}
+};
+
 const uploadChampion = multer({
 	storage: championStorage,
-	fileFilter: (req, file, cb) => {
-		const allowedTypes = /jpeg|jpg|png|gif|webp/;
-		const ext = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-		const mime = allowedTypes.test(file.mimetype);
-		if (ext && mime) {
-			cb(null, true);
-		} else {
-			cb(new Error('Only image files are allowed'));
-		}
-	}
+	fileFilter,
+	limits: { fileSize: 5 * 1024 * 1024 } // 5MB
 });
 
 const uploadItem = multer({
 	storage: itemStorage,
-	fileFilter: (req, file, cb) => {
-		const allowedTypes = /jpeg|jpg|png|gif|webp/;
-		const ext = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-		const mime = allowedTypes.test(file.mimetype);
-		if (ext && mime) {
-			cb(null, true);
-		} else {
-			cb(new Error('Only image files are allowed'));
-		}
-	}
+	fileFilter,
+	limits: { fileSize: 5 * 1024 * 1024 } // 5MB
 });
 
 // ============ CHAMPIONS API ============
 
-// Get all champions
+// Get all champions (public)
 app.get('/api/champions', (req, res) => {
 	const champions = readJSON(championsFile);
 	res.json(champions);
 });
 
-// Get single champion
+// Get single champion (public)
 app.get('/api/champions/:id', (req, res) => {
 	const champions = readJSON(championsFile);
 	const champion = champions.find(c => c.id === parseInt(req.params.id));
@@ -215,8 +270,8 @@ app.get('/api/champions/:id', (req, res) => {
 	res.json(champion);
 });
 
-// Create new champion
-app.post('/api/champions', (req, res) => {
+// Create new champion (auth required)
+app.post('/api/champions', authenticateToken, (req, res) => {
 	const { name, roles } = req.body;
 	if (!name) {
 		return res.status(400).json({ error: 'Name is required' });
@@ -244,8 +299,8 @@ app.post('/api/champions', (req, res) => {
 	res.status(201).json(newChampion);
 });
 
-// Update champion
-app.put('/api/champions/:id', (req, res) => {
+// Update champion (auth required)
+app.put('/api/champions/:id', authenticateToken, (req, res) => {
 	const { name, roles } = req.body;
 	const champions = readJSON(championsFile);
 	const index = champions.findIndex(c => c.id === parseInt(req.params.id));
@@ -270,8 +325,8 @@ app.put('/api/champions/:id', (req, res) => {
 	res.json(champions[index]);
 });
 
-// Delete champion
-app.delete('/api/champions/:id', (req, res) => {
+// Delete champion (auth required)
+app.delete('/api/champions/:id', authenticateToken, (req, res) => {
 	const champions = readJSON(championsFile);
 	const index = champions.findIndex(c => c.id === parseInt(req.params.id));
 
@@ -291,8 +346,8 @@ app.delete('/api/champions/:id', (req, res) => {
 	res.json({ message: 'Champion deleted' });
 });
 
-// Upload champion image
-app.post('/api/champions/:id/image', strictLimiter, uploadChampion.single('image'), (req, res) => {
+// Upload champion image (auth required)
+app.post('/api/champions/:id/image', authenticateToken, strictLimiter, uploadChampion.single('image'), (req, res) => {
 	if (!req.file) {
 		return res.status(400).json({ error: 'No image uploaded' });
 	}
@@ -316,13 +371,13 @@ app.post('/api/champions/:id/image', strictLimiter, uploadChampion.single('image
 
 // ============ ITEMS API ============
 
-// Get all items
+// Get all items (public)
 app.get('/api/items', (req, res) => {
 	const items = readJSON(itemsFile);
 	res.json(items);
 });
 
-// Get single item
+// Get single item (public)
 app.get('/api/items/:id', (req, res) => {
 	const items = readJSON(itemsFile);
 	const item = items.find(i => i.id === parseInt(req.params.id));
@@ -332,8 +387,8 @@ app.get('/api/items/:id', (req, res) => {
 	res.json(item);
 });
 
-// Create new item
-app.post('/api/items', (req, res) => {
+// Create new item (auth required)
+app.post('/api/items', authenticateToken, (req, res) => {
 	const { name } = req.body;
 	if (!name) {
 		return res.status(400).json({ error: 'Name is required' });
@@ -355,8 +410,8 @@ app.post('/api/items', (req, res) => {
 	res.status(201).json(newItem);
 });
 
-// Update item
-app.put('/api/items/:id', (req, res) => {
+// Update item (auth required)
+app.put('/api/items/:id', authenticateToken, (req, res) => {
 	const { name } = req.body;
 	const items = readJSON(itemsFile);
 	const index = items.findIndex(i => i.id === parseInt(req.params.id));
@@ -376,8 +431,8 @@ app.put('/api/items/:id', (req, res) => {
 	res.json(items[index]);
 });
 
-// Delete item
-app.delete('/api/items/:id', (req, res) => {
+// Delete item (auth required)
+app.delete('/api/items/:id', authenticateToken, (req, res) => {
 	const items = readJSON(itemsFile);
 	const index = items.findIndex(i => i.id === parseInt(req.params.id));
 
@@ -397,8 +452,8 @@ app.delete('/api/items/:id', (req, res) => {
 	res.json({ message: 'Item deleted' });
 });
 
-// Upload item image
-app.post('/api/items/:id/image', strictLimiter, uploadItem.single('image'), (req, res) => {
+// Upload item image (auth required)
+app.post('/api/items/:id/image', authenticateToken, strictLimiter, uploadItem.single('image'), (req, res) => {
 	if (!req.file) {
 		return res.status(400).json({ error: 'No image uploaded' });
 	}
@@ -422,8 +477,8 @@ app.post('/api/items/:id/image', strictLimiter, uploadItem.single('image'), (req
 
 // ============ INITIALIZATION API ============
 
-// Initialize champions from static data
-app.post('/api/init/champions', strictLimiter, (req, res) => {
+// Initialize champions from static data (auth required)
+app.post('/api/init/champions', authenticateToken, strictLimiter, (req, res) => {
 	const { champions } = req.body;
 	if (!champions || !Array.isArray(champions)) {
 		return res.status(400).json({ error: 'Champions array is required' });
@@ -432,8 +487,8 @@ app.post('/api/init/champions', strictLimiter, (req, res) => {
 	res.json({ message: 'Champions initialized', count: champions.length });
 });
 
-// Initialize items from static data
-app.post('/api/init/items', strictLimiter, (req, res) => {
+// Initialize items from static data (auth required)
+app.post('/api/init/items', authenticateToken, strictLimiter, (req, res) => {
 	const { items } = req.body;
 	if (!items || !Array.isArray(items)) {
 		return res.status(400).json({ error: 'Items array is required' });
@@ -444,12 +499,16 @@ app.post('/api/init/items', strictLimiter, (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
+	if (err.code === 'LIMIT_FILE_SIZE') {
+		return res.status(413).json({ error: 'Dosya boyutu 5MB\'dan büyük olamaz' });
+	}
 	console.error(err.stack);
 	res.status(500).json({ error: err.message || 'Something went wrong!' });
 });
 
 app.listen(PORT, () => {
 	console.log(`Server running on http://localhost:${PORT}`);
+	console.log(`CORS origin: ${corsOrigin}`);
 	console.log(`Champions data: ${championsFile}`);
 	console.log(`Items data: ${itemsFile}`);
 });

@@ -1,10 +1,76 @@
-import { writable } from 'svelte/store';
+import { writable, get } from 'svelte/store';
 
 export const language = writable('EN');
 
 // API configuration - environment variable veya varsayılan
 export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002';
+
+// ============ AUTH ============
+
+// Auth token store - localStorage'dan okur/yazar
+function createAuthStore() {
+	const stored = typeof localStorage !== 'undefined' ? localStorage.getItem('authToken') : null;
+	const store = writable(stored);
+
+	store.subscribe(value => {
+		if (typeof localStorage !== 'undefined') {
+			if (value) {
+				localStorage.setItem('authToken', value);
+			} else {
+				localStorage.removeItem('authToken');
+			}
+		}
+	});
+
+	return store;
+}
+
+export const authToken = createAuthStore();
+
+// Login - API'ye POST, token'ı store'a kaydet
+export async function login(password) {
+	const res = await fetch(`${API_URL}/auth/login`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ password })
+	});
+
+	if (!res.ok) {
+		const data = await res.json();
+		throw new Error(data.error || 'Giriş başarısız');
+	}
+
+	const { token } = await res.json();
+	authToken.set(token);
+	return token;
+}
+
+// Logout - token'ı sil
+export function logout() {
+	authToken.set(null);
+}
+
+// authFetch - her isteğe Authorization header ekler, 401'de auto-logout
+export async function authFetch(url, options = {}) {
+	const token = get(authToken);
+	const headers = { ...options.headers };
+
+	if (token) {
+		headers['Authorization'] = `Bearer ${token}`;
+	}
+
+	const res = await fetch(url, { ...options, headers });
+
+	if (res.status === 401) {
+		logout();
+		throw new Error('AUTH_EXPIRED');
+	}
+
+	return res;
+}
+
+// ============ DATA STORES ============
 
 // Champions store
 export const championsStore = writable([]);
@@ -50,7 +116,7 @@ export async function initializeData() {
 	if (champions.length === 0) {
 		try {
 			const { champions: staticChampions } = await import('./champions.js');
-			await fetch(`${API_URL}/init/champions`, {
+			await authFetch(`${API_URL}/init/champions`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ champions: staticChampions })
@@ -67,7 +133,7 @@ export async function initializeData() {
 	if (items.length === 0) {
 		try {
 			const { items: staticItems } = await import('./items.js');
-			await fetch(`${API_URL}/init/items`, {
+			await authFetch(`${API_URL}/init/items`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ items: staticItems })
