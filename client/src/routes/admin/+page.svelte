@@ -185,7 +185,7 @@
 
 	function getImageUrl(image) {
 		if (!image) return null;
-		if (image.startsWith('/uploads/')) {
+		if (image.startsWith('/uploads/') || image.startsWith('/api/images/')) {
 			return `${API_BASE_URL}${image}`;
 		}
 		return image;

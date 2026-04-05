@@ -154,7 +154,7 @@ export async function initializeData() {
 // Get image URL (handle both static and API images)
 export function getImageUrl(image) {
 	if (!image) return '/champions/default.png';
-	if (image.startsWith('/uploads/')) {
+	if (image.startsWith('/uploads/') || image.startsWith('/api/images/')) {
 		return `${API_BASE_URL}${image}`;
 	}
 	return image;
