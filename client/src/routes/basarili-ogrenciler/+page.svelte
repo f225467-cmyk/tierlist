@@ -20,10 +20,11 @@
 </script>
 
 <svelte:head>
-	<title>Başarılı Öğrenciler - Albatros LoL Koçluk</title>
-	<meta name="description" content="Albatros LoL koçluk ile rank atlayan öğrenciler. Gold'dan Diamond'a, Silver'dan Platinum'a yükselen oyuncuların başarı hikayeleri." />
-	<meta property="og:title" content="Başarılı Öğrenciler - Albatros LoL Koçluk" />
-	<meta property="og:description" content="Profesyonel koçluk ile rank atlayan öğrencilerin başarı hikayeleri. LoL koçluk gerçekten işe yarıyor." />
+	<title>Başarılı Öğrenciler - LoL Koçluk Sonuçları | Albatros</title>
+	<meta name="description" content="Albatros LoL koçluk ile rank atlayan öğrenciler. Gold'dan Diamond'a, Silver'dan Platinum'a, Platinum'dan Master'a yükselen oyuncuların başarı hikayeleri. Profesyonel koçluk gerçekten işe yarıyor." />
+	<meta property="og:title" content="Başarılı Öğrenciler - LoL Koçluk Sonuçları" />
+	<meta property="og:description" content="Profesyonel koçluk ile rank atlayan öğrencilerin başarı hikayeleri. Gold'dan Diamond'a, Silver'dan Platinum'a." />
+	<meta property="og:url" content="/basarili-ogrenciler" />
 </svelte:head>
 
 <svelte:window bind:scrollY />
@@ -97,6 +98,12 @@
 					Instagram'a Git
 				</a>
 			</div>
+			<nav class="footer-links fade-in">
+				<a href="/">Hakkında</a>
+				<a href="/kocluk-turleri">Koçluk Türleri</a>
+				<a href="/tierlist">Tier List</a>
+				<a href="/drafting">Draft Simülatör</a>
+			</nav>
 			<p class="copyright">&copy; 2026 Albatros LoL Koçluk</p>
 		</div>
 	</footer>
@@ -282,6 +289,25 @@
 	.btn-primary { background: #FF1744; color: #fff; }
 	.btn-primary:hover { background: #e01440; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255, 23, 68, 0.3); }
 	.btn-large { padding: 18px 48px; font-size: 18px; }
+
+	.footer-links {
+		display: flex;
+		justify-content: center;
+		gap: 24px;
+		margin-bottom: 24px;
+		flex-wrap: wrap;
+	}
+
+	.footer-links a {
+		color: #666;
+		text-decoration: none;
+		font-size: 14px;
+		transition: color 0.2s;
+	}
+
+	.footer-links a:hover {
+		color: #FF1744;
+	}
 
 	.copyright { color: #444; font-size: 14px; margin: 0; }
 

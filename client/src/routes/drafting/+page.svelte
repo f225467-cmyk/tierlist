@@ -544,10 +544,11 @@
 </script>
 
 <svelte:head>
-	<title>LoL Draft Simülatör - Albatros LoL Koçluk</title>
-	<meta name="description" content="League of Legends draft simülatörü. Ban ve pick yaparak takım kompozisyonunu planla, şampiyon seçimi stratejilerini pratik et." />
-	<meta property="og:title" content="LoL Draft Simülatör - Albatros LoL Koçluk" />
+	<title>LoL Draft Simülatör - Ban Pick Aracı | Albatros</title>
+	<meta name="description" content="League of Legends draft simülatörü. Ban ve pick yaparak takım kompozisyonunu planla. Mavi ve kırmızı taraf şampiyon seçimi, rol filtresi ve sürükle-bırak ile stratejik draft pratik et." />
+	<meta property="og:title" content="LoL Draft Simülatör - Ban Pick Aracı" />
 	<meta property="og:description" content="LoL draft simülatörü ile ban/pick stratejilerini planla. Mavi ve kırmızı takım kompozisyonu oluştur." />
+	<meta property="og:url" content="/drafting" />
 </svelte:head>
 
 {#if !dataReady}

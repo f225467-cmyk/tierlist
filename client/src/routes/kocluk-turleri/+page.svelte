@@ -21,10 +21,49 @@
 </script>
 
 <svelte:head>
-	<title>Koçluk Türleri - Albatros LoL Koçluk</title>
-	<meta name="description" content="LoL koçluk türleri: Canlı koçluk, VOD analiz ve 1v1 eğitim. Rün bilgisi, eşya optimizasyonu, makro ve mikro oyun geliştirme. Profesyonel bir koçla eksiklerinizi kapatın." />
-	<meta property="og:title" content="Koçluk Türleri - Albatros LoL Koçluk" />
+	<title>LoL Koçluk Türleri - Canlı Koçluk, VOD Analiz, 1v1 Eğitim | Albatros</title>
+	<meta name="description" content="LoL koçluk nedir? Canlı koçluk, VOD replay analizi ve 1v1 eğitim ile League of Legends'da gelişin. Rün bilgisi, eşya optimizasyonu, makro ve mikro oyun geliştirme. Profesyonel koçla eksiklerinizi kapatın." />
+	<meta property="og:title" content="LoL Koçluk Türleri - Canlı Koçluk, VOD Analiz, 1v1 Eğitim" />
 	<meta property="og:description" content="League of Legends koçluk türleri: Canlı koçluk, VOD replay analizi ve 1v1 eğitim. Profesyonel analist eşliğinde oyun seviyenizi yükseltin." />
+	<meta property="og:url" content="/kocluk-turleri" />
+	{@html `<script type="application/ld+json">${JSON.stringify({
+		"@context": "https://schema.org",
+		"@type": "FAQPage",
+		"mainEntity": [
+			{
+				"@type": "Question",
+				"name": "LoL koçluğu nedir?",
+				"acceptedAnswer": {
+					"@type": "Answer",
+					"text": "LoL koçluğu almanın faydası, profesyonel bir gözün sizin göremediğiniz hataları size uygun öğretme teknikleriyle ve doğru örneklendirmelerle aktarmasıdır. Koçunuz sizin yolunuzu aydınlatacak bir fenerdir. Eksiklerinizi kapatmanız konusunda bir kılavuz olarak her zaman yanınızdadır."
+				}
+			},
+			{
+				"@type": "Question",
+				"name": "Canlı koçluk nedir?",
+				"acceptedAnswer": {
+					"@type": "Answer",
+					"text": "Canlı koçluk, bir oyuncunun maç oynarken daha deneyimli biri tarafından anlık izlenip yönlendirilmesidir. Koç, hataları hemen söyler ve ne yapılması gerektiğini anlatır; böylece oyuncu oyunun içinde öğrenerek daha hızlı gelişir."
+				}
+			},
+			{
+				"@type": "Question",
+				"name": "VOD koçluk nedir?",
+				"acceptedAnswer": {
+					"@type": "Answer",
+					"text": "VOD (replay) koçluğu, oynanmış maçların sonradan izlenip analiz edilmesine dayanır ve koçluğun en klasik yöntemidir. Koç oyunu durdurarak hataları tek tek gösterir, neden yanlış olduğunu açıklar ve doğru kararın ne olması gerektiğini anlatır."
+				}
+			},
+			{
+				"@type": "Question",
+				"name": "1v1 koçluk nedir?",
+				"acceptedAnswer": {
+					"@type": "Answer",
+					"text": "1v1 koçluk daha çok top ve mid için uygundur çünkü bu roller birebir oynanabilir. Koridorda pozisyon alma, baskı altında savaşmayı öğrenme, eşleşme bilgisi ve şampiyon hakimiyeti konularında gelişim sağlar."
+				}
+			}
+		]
+	})}</script>`}
 </svelte:head>
 
 <svelte:window bind:scrollY />
@@ -157,6 +196,12 @@
 					Instagram'a Git
 				</a>
 			</div>
+			<nav class="footer-links fade-in">
+				<a href="/">Hakkında</a>
+				<a href="/basarili-ogrenciler">Başarılı Öğrenciler</a>
+				<a href="/tierlist">Tier List</a>
+				<a href="/drafting">Draft Simülatör</a>
+			</nav>
 			<p class="copyright">&copy; 2026 Albatros LoL Koçluk</p>
 		</div>
 	</footer>
@@ -398,6 +443,25 @@
 	.btn-primary { background: #FF1744; color: #fff; }
 	.btn-primary:hover { background: #e01440; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255, 23, 68, 0.3); }
 	.btn-large { padding: 18px 48px; font-size: 18px; }
+
+	.footer-links {
+		display: flex;
+		justify-content: center;
+		gap: 24px;
+		margin-bottom: 24px;
+		flex-wrap: wrap;
+	}
+
+	.footer-links a {
+		color: #666;
+		text-decoration: none;
+		font-size: 14px;
+		transition: color 0.2s;
+	}
+
+	.footer-links a:hover {
+		color: #FF1744;
+	}
 
 	.copyright { color: #444; font-size: 14px; margin: 0; }
 

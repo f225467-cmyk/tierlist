@@ -746,10 +746,11 @@
 </script>
 
 <svelte:head>
-	<title>LoL Tier List - Albatros LoL Koçluk</title>
-	<meta name="description" content="League of Legends şampiyon ve item tier list aracı. Sürükle-bırak ile kendi tier listeni oluştur, şampiyonları sırala ve paylaş." />
-	<meta property="og:title" content="LoL Tier List - Albatros LoL Koçluk" />
+	<title>LoL Tier List Oluştur - Şampiyon ve Item Sıralama | Albatros</title>
+	<meta name="description" content="League of Legends şampiyon ve item tier list aracı. Sürükle-bırak ile kendi tier listeni oluştur. Z, S, A, B, C, D tier'larına şampiyonları yerleştir, renklendirme ve highlighter özellikleriyle özelleştir." />
+	<meta property="og:title" content="LoL Tier List Oluştur - Şampiyon ve Item Sıralama" />
 	<meta property="og:description" content="League of Legends şampiyon tier list oluşturma aracı. Tüm şampiyonları tier'lara yerleştir." />
+	<meta property="og:url" content="/tierlist" />
 </svelte:head>
 
 {#if !dataReady}

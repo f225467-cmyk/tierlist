@@ -21,9 +21,32 @@
 
 <svelte:head>
 	<title>Albatros LoL Koçluk - Profesyonel League of Legends Koçu</title>
-	<meta name="description" content="Albatros Metin Değirmenci ile profesyonel LoL koçluk. Papara SuperMassive analist, AWH şampiyonluk koçu. Bireysel koçluk ile oyun seviyeni yükselt." />
+	<meta name="description" content="Albatros Metin Değirmenci ile profesyonel LoL koçluk. Papara SuperMassive analist, AWH şampiyonluk koçu. Canlı koçluk, VOD analiz ve 1v1 eğitim ile oyun seviyeni yükselt." />
 	<meta property="og:title" content="Albatros LoL Koçluk - Profesyonel League of Legends Koçu" />
 	<meta property="og:description" content="Profesyonel analist Albatros Metin Değirmenci ile bireysel LoL koçluk. Rün, eşya, makro ve mikro oyun eğitimi." />
+	<meta property="og:url" content="/" />
+	{@html `<script type="application/ld+json">${JSON.stringify({
+		"@context": "https://schema.org",
+		"@type": "ProfessionalService",
+		"name": "Albatros LoL Koçluk",
+		"description": "League of Legends profesyonel bireysel koçluk hizmeti. Canlı koçluk, VOD analiz ve 1v1 eğitim.",
+		"founder": {
+			"@type": "Person",
+			"name": "Albatros Metin Değirmenci",
+			"jobTitle": "League of Legends Koç ve Analist",
+			"description": "2020'den beri bireysel koçluk. Papara SuperMassive Analist, NASR Esports Akademi, Always With Honor Şampiyonluk Asistan Koçu.",
+			"sameAs": [
+				"https://www.instagram.com/albatrosotuz5",
+				"https://www.youtube.com/@Albatroos35",
+				"https://kick.com/albatros35",
+				"https://www.tiktok.com/@albatrosotuz5",
+				"https://x.com/Albatrosotuzbes"
+			]
+		},
+		"serviceType": "Esports Koçluk",
+		"areaServed": "TR",
+		"inLanguage": "tr"
+	})}</script>`}
 </svelte:head>
 
 <svelte:window bind:scrollY />
@@ -52,17 +75,17 @@
 	<!-- Hakkında -->
 	<section id="hakkinda" class="hero">
 		<div class="hero-bg">
-			<img src="/hakkinda-bg.jpg" alt="" class="hero-bg-img" />
+			<img src="/hakkinda-bg.jpg" alt="League of Legends koçluk" class="hero-bg-img" />
 			<div class="hero-overlay"></div>
 		</div>
 		<div class="hero-content fade-in">
 			<div class="hakkinda-layout">
 				<div class="hakkinda-photo">
-					<img src="/AlbatrosChess.png" alt="Albatros" class="hakkinda-img" />
+					<img src="/AlbatrosChess.png" alt="Albatros Metin Değirmenci - League of Legends Profesyonel Koç ve Analist" class="hakkinda-img" />
 				</div>
 				<div class="hakkinda-text">
 					<div class="hakkinda-section">
-						<h2 class="hakkinda-label">KARİYER</h2>
+						<h1 class="hakkinda-label">KARİYER</h1>
 						<p class="hakkinda-name">Ben <strong>Albatros Metin Değirmenci.</strong></p>
 						<p class="hakkinda-desc">2020 yılında bireysel koçluk kariyerime başladım ve sonrasında farklı takımlarda çeşitli görevler üstlendim. League of Legends'da oyun temelleri ve teorik bilgiler üzerine aktif olarak çalışmaktayım.</p>
 						<p class="hakkinda-desc">Her öğrencinin özel olduğuna inanıyor, her koçluk sürecini derinlerine inmemiz gereken uçsuz bucaksız bir yolculuk olarak görüyorum.</p>
