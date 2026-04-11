@@ -5,7 +5,10 @@
 	let currentPage = 'tierlist';
 	let selectedLanguage = 'EN';
 
-	$: isFullscreen = $page.url.pathname === '/' || $page.url.pathname.startsWith('/admin');
+	$: isFullscreen = $page.url.pathname === '/'
+		|| $page.url.pathname.startsWith('/admin')
+		|| $page.url.pathname.startsWith('/kocluk-turleri')
+		|| $page.url.pathname.startsWith('/basarili-ogrenciler');
 
 	$: {
 		if ($page.url.pathname.includes('admin')) {
