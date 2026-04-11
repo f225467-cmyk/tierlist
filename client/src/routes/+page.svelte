@@ -36,8 +36,8 @@
 				<a href="/tierlist" class="nav-link">Tier List</a>
 				<a href="/drafting" class="nav-link">Draft</a>
 			</div>
-			<a href="https://discord.gg/lol-kocluk" target="_blank" rel="noopener noreferrer" class="nav-cta">
-				Discord'dan Ulaş
+			<a href="https://www.instagram.com/albatrosotuz5" target="_blank" rel="noopener noreferrer" class="nav-cta">
+				Instagram'dan Ulaş
 			</a>
 		</div>
 	</nav>
