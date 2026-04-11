@@ -22,7 +22,9 @@ const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || '';
 
 const pool = new pg.Pool({
 	connectionString: process.env.DATABASE_URL,
-	ssl: { rejectUnauthorized: false }
+	ssl: process.env.DATABASE_URL?.includes('neon.tech')
+		? { rejectUnauthorized: false }
+		: false
 });
 
 async function initDB() {
