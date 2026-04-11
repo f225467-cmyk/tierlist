@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
+import compression from 'compression';
 import cors from 'cors';
 import multer from 'multer';
 import path from 'path';
@@ -59,6 +60,7 @@ app.use(cors({
 	origin: corsOrigin.split(',').map(s => s.trim()),
 	credentials: true
 }));
+app.use(compression());
 app.use(express.json({ limit: '50mb' }));
 
 // Rate limiting
@@ -177,7 +179,7 @@ app.get('/api/images/champions/:id', async (req, res) => {
 		const { image_data, image_mime } = result.rows[0];
 		const buffer = Buffer.from(image_data, 'base64');
 		res.set('Content-Type', image_mime);
-		res.set('Cache-Control', 'public, max-age=86400');
+		res.set('Cache-Control', 'public, max-age=604800, stale-while-revalidate=86400');
 		res.send(buffer);
 	} catch (err) {
 		res.status(500).json({ error: 'Failed to load image' });
@@ -196,7 +198,7 @@ app.get('/api/images/items/:id', async (req, res) => {
 		const { image_data, image_mime } = result.rows[0];
 		const buffer = Buffer.from(image_data, 'base64');
 		res.set('Content-Type', image_mime);
-		res.set('Cache-Control', 'public, max-age=86400');
+		res.set('Cache-Control', 'public, max-age=604800, stale-while-revalidate=86400');
 		res.send(buffer);
 	} catch (err) {
 		res.status(500).json({ error: 'Failed to load image' });
@@ -207,8 +209,16 @@ app.get('/api/images/items/:id', async (req, res) => {
 
 app.get('/api/champions', async (req, res) => {
 	try {
-		const result = await pool.query('SELECT id, name, image, roles FROM champions ORDER BY id');
-		res.json(result.rows);
+		const result = await pool.query('SELECT id, name, image, roles, image_data, image_mime FROM champions ORDER BY id');
+		res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
+		const rows = result.rows.map(row => {
+			const obj = { id: row.id, name: row.name, image: row.image, roles: row.roles };
+			if (row.image_data && row.image_mime) {
+				obj.thumbnail = `data:${row.image_mime};base64,${row.image_data}`;
+			}
+			return obj;
+		});
+		res.json(rows);
 	} catch (err) {
 		console.error('Failed to fetch champions:', err);
 		res.status(500).json({ error: 'Failed to fetch champions' });
@@ -341,8 +351,16 @@ app.post('/api/champions/:id/image', authenticateToken, strictLimiter, upload.si
 
 app.get('/api/items', async (req, res) => {
 	try {
-		const result = await pool.query('SELECT id, name, image FROM items ORDER BY id');
-		res.json(result.rows);
+		const result = await pool.query('SELECT id, name, image, image_data, image_mime FROM items ORDER BY id');
+		res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
+		const rows = result.rows.map(row => {
+			const obj = { id: row.id, name: row.name, image: row.image };
+			if (row.image_data && row.image_mime) {
+				obj.thumbnail = `data:${row.image_mime};base64,${row.image_data}`;
+			}
+			return obj;
+		});
+		res.json(rows);
 	} catch (err) {
 		console.error('Failed to fetch items:', err);
 		res.status(500).json({ error: 'Failed to fetch items' });

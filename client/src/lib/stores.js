@@ -152,12 +152,25 @@ export async function initializeData() {
 }
 
 // Get image URL (handle both static and API images)
-export function getImageUrl(image) {
-	if (!image) return '/champions/default.png';
-	if (image.startsWith('/uploads/') || image.startsWith('/api/images/')) {
-		return `${API_BASE_URL}${image}`;
+// If item has a thumbnail (inline base64), use it directly to avoid extra HTTP requests
+export function getImageUrl(imageOrItem, item) {
+	// Called as getImageUrl(item.image) — legacy
+	if (typeof imageOrItem === 'string' || !imageOrItem) {
+		const image = imageOrItem;
+		if (!image) return '/champions/default.png';
+		if (image.startsWith('/uploads/') || image.startsWith('/api/images/')) {
+			return `${API_BASE_URL}${image}`;
+		}
+		return image;
 	}
-	return image;
+	return '/champions/default.png';
+}
+
+// New helper: resolves the best image source for an item/champion object
+export function getItemImageSrc(item) {
+	if (!item) return '/champions/default.png';
+	if (item.thumbnail) return item.thumbnail;
+	return getImageUrl(item.image);
 }
 
 export const translations = {

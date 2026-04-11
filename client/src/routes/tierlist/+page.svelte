@@ -1,7 +1,7 @@
 <script>
 	import { onMount, onDestroy } from 'svelte';
 	import { dndzone } from 'svelte-dnd-action';
-	import { language, translations, championsStore, itemsStore, initializeData, getImageUrl } from '$lib/stores.js';
+	import { language, translations, championsStore, itemsStore, initializeData, getItemImageSrc } from '$lib/stores.js';
 
 	let currentLang = 'EN';
 	let unsubscribeLanguage;
@@ -745,6 +745,32 @@
 	});
 </script>
 
+{#if !dataReady}
+<div class="skeleton-page">
+	<div class="skeleton-header">
+		<div class="skeleton-box" style="width: 120px; height: 28px;"></div>
+		<div class="skeleton-box" style="width: 200px; height: 36px; border-radius: 6px;"></div>
+		<div class="skeleton-box" style="width: 300px; height: 36px; border-radius: 6px;"></div>
+	</div>
+	<div class="skeleton-tiers">
+		{#each Array(6) as _, i}
+			<div class="skeleton-tier">
+				<div class="skeleton-tier-label"></div>
+				<div class="skeleton-tier-content">
+					{#each Array(3 + Math.floor(Math.random() * 4)) as _}
+						<div class="skeleton-champion"></div>
+					{/each}
+				</div>
+			</div>
+		{/each}
+	</div>
+	<div class="skeleton-pool">
+		{#each Array(24) as _}
+			<div class="skeleton-champion"></div>
+		{/each}
+	</div>
+</div>
+{:else}
 <div class="tierlist-page">
 	<div class="page-header">
 		<h1 class="page-title">{t.tierList}</h1>
@@ -815,7 +841,7 @@
 								role="button"
 								tabindex="0"
 							>
-								<img src={getImageUrl(item.image)} alt={item.name} />
+								<img src={getItemImageSrc(item)} alt={item.name} />
 								<div class="champion-tooltip">{item.name}</div>
 							</div>
 						{/each}
@@ -871,7 +897,7 @@
 							role="button"
 							tabindex="0"
 						>
-							<img src={getImageUrl(item.image)} alt={item.name} />
+							<img src={getItemImageSrc(item)} alt={item.name} loading="lazy" />
 							<div class="champion-tooltip">{item.name}</div>
 						</div>
 					{/each}
@@ -1080,8 +1106,86 @@
 		{/if}
 	</div>
 </div>
+{/if}
 
 <style>
+	.skeleton-page {
+		height: 100vh;
+		display: flex;
+		flex-direction: column;
+		background-color: #000;
+		padding: 16px;
+		gap: 12px;
+		overflow: hidden;
+	}
+
+	.skeleton-header {
+		display: flex;
+		align-items: center;
+		gap: 16px;
+		padding: 12px 0;
+	}
+
+	.skeleton-box {
+		background: #1a1a1a;
+		border-radius: 4px;
+		animation: skeleton-pulse 1.5s ease-in-out infinite;
+	}
+
+	.skeleton-tiers {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		flex: 1;
+	}
+
+	.skeleton-tier {
+		display: flex;
+		align-items: stretch;
+		min-height: 68px;
+	}
+
+	.skeleton-tier-label {
+		width: 100px;
+		background: #1a1a1a;
+		border-radius: 4px 0 0 4px;
+		animation: skeleton-pulse 1.5s ease-in-out infinite;
+	}
+
+	.skeleton-tier-content {
+		flex: 1;
+		display: flex;
+		align-items: center;
+		gap: 4px;
+		padding: 8px;
+		background: #0d0d0d;
+		border-radius: 0 4px 4px 0;
+	}
+
+	.skeleton-champion {
+		width: 52px;
+		height: 52px;
+		border-radius: 6px;
+		background: #1a1a1a;
+		flex-shrink: 0;
+		animation: skeleton-pulse 1.5s ease-in-out infinite;
+	}
+
+	.skeleton-pool {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+		padding: 12px;
+		background: #0d0d0d;
+		border-radius: 8px;
+		min-height: 120px;
+	}
+
+	@keyframes skeleton-pulse {
+		0%, 100% { opacity: 0.4; }
+		50% { opacity: 0.8; }
+	}
+
 	.tierlist-page {
 		height: 100vh;
 		display: flex;

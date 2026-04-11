@@ -1,6 +1,6 @@
 <script>
 	import { onMount, onDestroy } from 'svelte';
-	import { language, translations, initializeData, getImageUrl } from '$lib/stores.js';
+	import { language, translations, initializeData, getItemImageSrc } from '$lib/stores.js';
 
 	let currentLang = 'EN';
 	let unsubscribeLanguage;
@@ -543,6 +543,32 @@
 	});
 </script>
 
+{#if !dataReady}
+<div class="skeleton-draft">
+	<div class="skeleton-draft-header">
+		<div class="skeleton-box" style="width: 80px; height: 32px;"></div>
+	</div>
+	<div class="skeleton-draft-body">
+		<div class="skeleton-draft-side">
+			<div class="skeleton-box" style="width: 100%; height: 24px; margin-bottom: 12px;"></div>
+			{#each Array(5) as _}
+				<div class="skeleton-box" style="width: 100%; height: 56px; margin-bottom: 6px; border-radius: 6px;"></div>
+			{/each}
+		</div>
+		<div class="skeleton-draft-pool">
+			{#each Array(30) as _}
+				<div class="skeleton-champion"></div>
+			{/each}
+		</div>
+		<div class="skeleton-draft-side">
+			<div class="skeleton-box" style="width: 100%; height: 24px; margin-bottom: 12px;"></div>
+			{#each Array(5) as _}
+				<div class="skeleton-box" style="width: 100%; height: 56px; margin-bottom: 6px; border-radius: 6px;"></div>
+			{/each}
+		</div>
+	</div>
+</div>
+{:else}
 <div class="drafting-page">
 	<!-- Top Navbar -->
 	<div class="top-navbar">
@@ -579,7 +605,7 @@
 				>
 					{#if ban}
 						<img
-							src={getImageUrl(ban.image)}
+							src={getItemImageSrc(ban)}
 							alt={ban.name}
 							class="banned-champion"
 							draggable="true"
@@ -615,7 +641,7 @@
 				>
 					{#if ban}
 						<img
-							src={getImageUrl(ban.image)}
+							src={getItemImageSrc(ban)}
 							alt={ban.name}
 							class="banned-champion"
 							draggable="true"
@@ -656,7 +682,7 @@
 					>
 						{#if pick}
 							<img
-								src={getImageUrl(pick.image)}
+								src={getItemImageSrc(pick)}
 								alt={pick.name}
 								class="picked-champion"
 								draggable="true"
@@ -723,7 +749,7 @@
 						role="button"
 						tabindex="0"
 					>
-						<img src={getImageUrl(champion.image)} alt={champion.name} />
+						<img src={getItemImageSrc(champion)} alt={champion.name} loading="lazy" />
 						<div class="champion-name">{champion.name}</div>
 					</div>
 				{/each}
@@ -752,7 +778,7 @@
 					>
 						{#if pick}
 							<img
-								src={getImageUrl(pick.image)}
+								src={getItemImageSrc(pick)}
 								alt={pick.name}
 								class="picked-champion"
 								draggable="true"
@@ -770,8 +796,65 @@
 		</div>
 	</div>
 </div>
+{/if}
 
 <style>
+	.skeleton-draft {
+		height: 100vh;
+		background: #000;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+	}
+
+	.skeleton-draft-header {
+		padding: 12px 20px;
+		border-bottom: 1px solid #1a1a1a;
+	}
+
+	.skeleton-draft-body {
+		flex: 1;
+		display: flex;
+		gap: 12px;
+		padding: 16px;
+	}
+
+	.skeleton-draft-side {
+		width: 200px;
+		flex-shrink: 0;
+	}
+
+	.skeleton-draft-pool {
+		flex: 1;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+		align-content: flex-start;
+		padding: 12px;
+		background: #0d0d0d;
+		border-radius: 8px;
+	}
+
+	.skeleton-draft .skeleton-box {
+		background: #1a1a1a;
+		border-radius: 4px;
+		animation: skeleton-pulse 1.5s ease-in-out infinite;
+	}
+
+	.skeleton-draft .skeleton-champion {
+		width: 52px;
+		height: 52px;
+		border-radius: 6px;
+		background: #1a1a1a;
+		flex-shrink: 0;
+		animation: skeleton-pulse 1.5s ease-in-out infinite;
+	}
+
+	@keyframes skeleton-pulse {
+		0%, 100% { opacity: 0.4; }
+		50% { opacity: 0.8; }
+	}
+
 	.drafting-page {
 		height: 100vh;
 		display: flex;
