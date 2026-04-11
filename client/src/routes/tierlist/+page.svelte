@@ -745,6 +745,13 @@
 	});
 </script>
 
+<svelte:head>
+	<title>LoL Tier List - Albatros LoL Koçluk</title>
+	<meta name="description" content="League of Legends şampiyon ve item tier list aracı. Sürükle-bırak ile kendi tier listeni oluştur, şampiyonları sırala ve paylaş." />
+	<meta property="og:title" content="LoL Tier List - Albatros LoL Koçluk" />
+	<meta property="og:description" content="League of Legends şampiyon tier list oluşturma aracı. Tüm şampiyonları tier'lara yerleştir." />
+</svelte:head>
+
 {#if !dataReady}
 <div class="skeleton-page">
 	<div class="skeleton-header">

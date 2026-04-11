@@ -19,6 +19,13 @@
 	});
 </script>
 
+<svelte:head>
+	<title>Başarılı Öğrenciler - Albatros LoL Koçluk</title>
+	<meta name="description" content="Albatros LoL koçluk ile rank atlayan öğrenciler. Gold'dan Diamond'a, Silver'dan Platinum'a yükselen oyuncuların başarı hikayeleri." />
+	<meta property="og:title" content="Başarılı Öğrenciler - Albatros LoL Koçluk" />
+	<meta property="og:description" content="Profesyonel koçluk ile rank atlayan öğrencilerin başarı hikayeleri. LoL koçluk gerçekten işe yarıyor." />
+</svelte:head>
+
 <svelte:window bind:scrollY />
 
 <div class="landing">

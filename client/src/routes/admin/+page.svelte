@@ -360,6 +360,11 @@
 	}
 </script>
 
+<svelte:head>
+	<title>Admin Panel - Albatros LoL Koçluk</title>
+	<meta name="robots" content="noindex, nofollow" />
+</svelte:head>
+
 {#if !isLoggedIn}
 	<!-- Login Gate -->
 	<div class="login-page">

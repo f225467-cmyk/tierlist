@@ -543,6 +543,13 @@
 	});
 </script>
 
+<svelte:head>
+	<title>LoL Draft Simülatör - Albatros LoL Koçluk</title>
+	<meta name="description" content="League of Legends draft simülatörü. Ban ve pick yaparak takım kompozisyonunu planla, şampiyon seçimi stratejilerini pratik et." />
+	<meta property="og:title" content="LoL Draft Simülatör - Albatros LoL Koçluk" />
+	<meta property="og:description" content="LoL draft simülatörü ile ban/pick stratejilerini planla. Mavi ve kırmızı takım kompozisyonu oluştur." />
+</svelte:head>
+
 {#if !dataReady}
 <div class="skeleton-draft">
 	<div class="skeleton-draft-header">

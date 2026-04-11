@@ -20,6 +20,13 @@
 	});
 </script>
 
+<svelte:head>
+	<title>Koçluk Türleri - Albatros LoL Koçluk</title>
+	<meta name="description" content="LoL koçluk türleri: Canlı koçluk, VOD analiz ve 1v1 eğitim. Rün bilgisi, eşya optimizasyonu, makro ve mikro oyun geliştirme. Profesyonel bir koçla eksiklerinizi kapatın." />
+	<meta property="og:title" content="Koçluk Türleri - Albatros LoL Koçluk" />
+	<meta property="og:description" content="League of Legends koçluk türleri: Canlı koçluk, VOD replay analizi ve 1v1 eğitim. Profesyonel analist eşliğinde oyun seviyenizi yükseltin." />
+</svelte:head>
+
 <svelte:window bind:scrollY />
 
 <div class="landing">
@@ -42,6 +49,59 @@
 		</div>
 	</nav>
 
+	<!-- LoL Koçluk Nedir -->
+	<section class="section intro-section">
+		<div class="container">
+			<h1 class="section-title fade-in">LoL Koçluk Nedir?</h1>
+			<div class="intro-text fade-in">
+				<p>LoL koçluğu almanın faydası, profesyonel bir gözün sizin göremediğiniz hataları size uygun öğretme teknikleriyle ve doğru örneklendirmelerle aktarmasıdır. Profesyonel bir yardım almanın her zaman faydası vardır.</p>
+				<p>Koçluk konsept olarak incelendiğinde, bir oyuncunun koçuyla çalışıp istediği yere varması uzun bir süreçtir. Koçunuz sizin yolunuzu aydınlatacak bir fenerdir. Eksiklerinizi kapatmanız konusunda bir kılavuz olarak her zaman yanınızdadır.</p>
+			</div>
+		</div>
+	</section>
+
+	<!-- Koçluk Türleri -->
+	<section class="section">
+		<div class="container">
+			<h2 class="section-title fade-in">Koçluk Türleri</h2>
+			<div class="coaching-types fade-in">
+				<div class="coaching-type-card">
+					<div class="coaching-type-icon">
+						<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#FF1744" stroke-width="2">
+							<circle cx="12" cy="12" r="10"/>
+							<polygon points="10 8 16 12 10 16 10 8"/>
+						</svg>
+					</div>
+					<h3>Canlı Koçluk</h3>
+					<p>Canlı koçluk, bir oyuncunun maç oynarken daha deneyimli biri tarafından anlık izlenip yönlendirilmesidir. Koç, hataları hemen söyler ve ne yapılması gerektiğini anlatır; böylece oyuncu oyunun içinde öğrenerek daha hızlı gelişir.</p>
+				</div>
+				<div class="coaching-type-card">
+					<div class="coaching-type-icon">
+						<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#FF1744" stroke-width="2">
+							<rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+							<line x1="8" y1="21" x2="16" y2="21"/>
+							<line x1="12" y1="17" x2="12" y2="21"/>
+						</svg>
+					</div>
+					<h3>VOD (Replay) Koçluk</h3>
+					<p>VOD koçluğu, oynanmış maçların sonradan izlenip analiz edilmesine dayanır ve koçluğun en klasik yöntemidir. Koç oyunu durdurarak hataları tek tek gösterir, neden yanlış olduğunu açıklar ve doğru kararın ne olması gerektiğini anlatır.</p>
+				</div>
+				<div class="coaching-type-card">
+					<div class="coaching-type-icon">
+						<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#FF1744" stroke-width="2">
+							<path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+							<circle cx="8.5" cy="7" r="4"/>
+							<path d="M20 8v6M23 11h-6"/>
+						</svg>
+					</div>
+					<h3>1v1 Koçluk</h3>
+					<p>1v1 koçluk daha çok top ve mid için uygundur çünkü bu roller birebir oynanabilir. Koridorda pozisyon alma, baskı altında savaşmayı öğrenme, eşleşme bilgisi ve şampiyon hakimiyeti konularında gelişim sağlar.</p>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Ne Katar -->
 	<section class="section">
 		<div class="container">
 			<h2 class="section-title fade-in">Koçluk Size Ne Katar?</h2>
@@ -200,7 +260,11 @@
 	}
 
 	.section {
-		padding: 120px 0 100px;
+		padding: 80px 0;
+	}
+
+	.intro-section {
+		padding-top: 120px;
 	}
 
 	.container {
@@ -214,6 +278,57 @@
 		font-weight: 800;
 		text-align: center;
 		margin: 0 0 60px;
+	}
+
+	.intro-text {
+		max-width: 800px;
+		margin: 0 auto;
+		text-align: center;
+	}
+
+	.intro-text p {
+		color: rgba(255, 255, 255, 0.8);
+		font-size: 17px;
+		line-height: 1.8;
+		margin: 0 0 20px;
+	}
+
+	.coaching-types {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 24px;
+	}
+
+	.coaching-type-card {
+		background: #111;
+		border: 1px solid #1a1a1a;
+		border-radius: 16px;
+		padding: 36px 28px;
+		transition: all 0.3s ease;
+	}
+
+	.coaching-type-card:hover {
+		border-color: #FF1744;
+		transform: translateY(-4px);
+		box-shadow: 0 8px 32px rgba(255, 23, 68, 0.1);
+	}
+
+	.coaching-type-icon {
+		margin-bottom: 20px;
+	}
+
+	.coaching-type-card h3 {
+		font-size: 20px;
+		font-weight: 700;
+		margin: 0 0 14px;
+		color: #fff;
+	}
+
+	.coaching-type-card p {
+		color: #888;
+		font-size: 15px;
+		line-height: 1.7;
+		margin: 0;
 	}
 
 	.cards-grid {
@@ -299,13 +414,15 @@
 
 	@media (max-width: 900px) {
 		.cards-grid { grid-template-columns: repeat(2, 1fr); }
+		.coaching-types { grid-template-columns: 1fr; }
 		.nav-links { display: none; }
 	}
 
 	@media (max-width: 600px) {
 		.cards-grid { grid-template-columns: 1fr; }
 		.section-title { font-size: 28px; margin-bottom: 40px; }
-		.section { padding: 100px 0 60px; }
+		.section { padding: 60px 0 40px; }
+		.intro-section { padding-top: 100px; }
 		.footer-cta h2 { font-size: 24px; }
 		.nav-cta { padding: 8px 14px; font-size: 13px; }
 	}

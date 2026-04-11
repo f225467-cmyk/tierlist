@@ -19,6 +19,13 @@
 	});
 </script>
 
+<svelte:head>
+	<title>Albatros LoL Koçluk - Profesyonel League of Legends Koçu</title>
+	<meta name="description" content="Albatros Metin Değirmenci ile profesyonel LoL koçluk. Papara SuperMassive analist, AWH şampiyonluk koçu. Bireysel koçluk ile oyun seviyeni yükselt." />
+	<meta property="og:title" content="Albatros LoL Koçluk - Profesyonel League of Legends Koçu" />
+	<meta property="og:description" content="Profesyonel analist Albatros Metin Değirmenci ile bireysel LoL koçluk. Rün, eşya, makro ve mikro oyun eğitimi." />
+</svelte:head>
+
 <svelte:window bind:scrollY />
 
 <div class="landing">
